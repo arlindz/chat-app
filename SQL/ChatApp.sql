@@ -53,38 +53,3 @@ CREATE TABLE UnseenMessages(
    PRIMARY KEY(UserId, GroupChatId),
    UnseenMessagesCount INT NOT NULL
 );
-
-SELECT * FROM UnseenMessages
-
-SELECT * FROM GroupChats
-
-DECLARE @offset INT = 0;
-DECLARE @groupChatId BIGINT = 23;
-DECLARE @limit BIGINT = 8;
-DECLARE @userId BIGINT = 1;
-DECLARE @groupId BIGINT = 23;
-BEGIN TRANSACTION;
-                            BEGIN TRY
-                             DECLARE @CanDelete BIT = CASE WHEN (SELECT COUNT(*)
-                                                                 FROM GroupChatMembers
-                                                                 WHERE GroupChatId = @groupId AND UserId = @userId AND Permission = 4) = 1 THEN 1 ELSE 0 END;
-                             IF(@CanDelete = 1)
-                             BEGIN                                 
-                               SELECT UserId 
-                               FROM GroupChatMembers
-                               WHERE GroupChatId = @groupId;
-
-                               DELETE FROM GroupChatMembers WHERE GroupChatId = @groupId;
-                               DELETE FROM UnseenMessages WHERE GroupChatId = @groupId;
-							   DELETE FROM Messages WHERE GroupChatId = @groupId;
-                               DELETE FROM GroupChats WHERE GroupChatId = @groupId;
-                             END
-
-                            COMMIT;
-                            END TRY
-                            BEGIN CATCH
-							 THROW;
-                             ROLLBACK;
-                            END CATCH;
-
-					
